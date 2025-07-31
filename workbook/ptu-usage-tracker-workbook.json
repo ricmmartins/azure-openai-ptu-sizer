@@ -1,0 +1,59 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Azure OpenAI PTU Usage Tracker\n\nThis workbook helps you analyze your Azure OpenAI token usage patterns and provides recommendations for Provisioned Throughput Units (PTU) sizing.\n\n📊 **Key Metrics**:\n- Real-time token consumption analysis\n- PTU sizing recommendations based on usage patterns\n- Cost comparison between pay-per-token and PTU models\n- Rate limiting detection and performance insights"
+      },
+      "name": "Header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| where TimeGenerated >= ago(24h)\n| summarize RequestCount = count() by bin(TimeGenerated, 1h)\n| render timechart \n    with (title=\"API Requests Over Time (Last 24 Hours)\", xtitle=\"Time\", ytitle=\"Request Count\")",
+        "size": 0,
+        "title": "🔥 API Request Volume",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "RequestVolume"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName in (\"ProcessedPromptTokens\", \"ProcessedCompletionTokens\")\n| where TimeGenerated >= ago(24h)\n| summarize \n    PromptTokens = sumif(Total, MetricName == \"ProcessedPromptTokens\"),\n    CompletionTokens = sumif(Total, MetricName == \"ProcessedCompletionTokens\")\n| extend TotalTokens = PromptTokens + CompletionTokens\n| extend EstimatedPTUs = toint((TotalTokens + 49999) / 50000)\n| project PromptTokens, CompletionTokens, TotalTokens, EstimatedPTUs",
+        "size": 0,
+        "title": "📦 Token Summary & PTU Recommendation",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "TokenSummary"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName in (\"ProcessedPromptTokens\", \"ProcessedCompletionTokens\")\n| where TimeGenerated >= ago(24h)\n| summarize \n    PromptTokens = sumif(Total, MetricName == \"ProcessedPromptTokens\"),\n    CompletionTokens = sumif(Total, MetricName == \"ProcessedCompletionTokens\")\n    by bin(TimeGenerated, 1h)\n| extend TotalTokens = PromptTokens + CompletionTokens\n| extend EstimatedPTUs = toint((TotalTokens + 49999) / 50000)\n| project TimeGenerated, EstimatedPTUs\n| render timechart with (title=\"📈 Estimated PTU Usage per Hour\", xtitle=\"Time\", ytitle=\"PTUs\")",
+        "size": 0,
+        "title": "📊 PTU Trend by Hour",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "PTUTrendChart"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 📋 PTU Decision Guide\n\n**When to consider PTU:**\n- ✅ Consistent high-volume usage (>50K tokens/day)\n- ✅ Predictable workload patterns\n- ✅ Need guaranteed throughput/low latency\n- ✅ Rate limiting issues with pay-per-token\n\n**PTU Sizing Guidelines:**\n- **PTU-100**: ~6,000 tokens/minute sustained\n- **PTU-300**: ~18,000 tokens/minute sustained\n- **PTU-500**: ~30,000 tokens/minute sustained\n\n**Cost Breakeven Points (approximate):**\n- PTU-100: ~240K tokens/day\n- PTU-300: ~720K tokens/day\n- PTU-500: ~1.2M tokens/day\n\nℹ️ 1 PTU = 50K tokens/minute. Estimation: `ceil(total_tokens / 50000)`"
+      },
+      "name": "PTUDecisionGuide"
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/313dd062-1c1c-428a-afc4-4e271378679f/resourceGroups/rg-aoai/providers/Microsoft.OperationalInsights/workspaces/loganalytics"
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

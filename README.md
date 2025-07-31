@@ -1,3 +1,4 @@
+
 # Azure OpenAI PTU Sizer
 
 A practical toolkit to help Azure OpenAI users estimate Provisioned Throughput Units (PTUs), identify token usage patterns, and compare cost strategies.
@@ -5,9 +6,9 @@ A practical toolkit to help Azure OpenAI users estimate Provisioned Throughput U
 ## 🔍 Overview
 This repo includes:
 
-- 📊 **Azure Workbook** to visualize token usage and estimate PTUs  
-- 📈 **Excel-based PTU Calculator** for cost comparison and scenario modeling  
-- 🧩 **Workbook-to-Spreadsheet Mapping** to streamline the workflow  
+- 📊 **Azure Workbook** to visualize token usage and estimate PTUs
+- 📈 **Excel-based PTU Calculator** for cost comparison and scenario modeling
+- 🧩 **Workbook-to-Spreadsheet Mapping** to streamline the workflow
 - 🧪 **Example workflow** to get you started in under 10 minutes
 
 ---
@@ -33,11 +34,11 @@ Import the [Azure Workbook JSON](./workbook/ptu-usage-tracker-workbook.json) int
 ### 3. Use the Spreadsheet
 Open the [PTU_Sizing_Recommendation_Enhanced.xlsx](./spreadsheet/PTU_Sizing_Recommendation_Enhanced.xlsx) file. Update the highlighted **input cells only**:
 
-- **B4**: PTU Price per 1M Tokens (Reserved)  
-- **B5**: Monthly Minutes (usually 43,800)  
-- **B6**: Average Tokens per Minute (from workbook summary)  
-- **B7**: PTU Conversion Rate (default: 50,000)  
-- **B8**: Desired PTUs for Fixed + Spillover Scenario  
+- **B4**: PTU Price per 1M Tokens (Reserved)
+- **B5**: Monthly Minutes (usually 43,800)
+- **B6**: Average Tokens per Minute (from workbook summary)
+- **B7**: PTU Conversion Rate (default: 50,000)
+- **B8**: Desired PTUs for Fixed + Spillover Scenario
 
 You can also edit PAYGO token prices for each model in the table below input cells.
 
@@ -45,29 +46,13 @@ You can also edit PAYGO token prices for each model in the table below input cel
 
 ## 🧩 Workbook → Spreadsheet Mapping
 
-| Workbook Panel                        | Spreadsheet Field                             | Notes                                                                 |
-|--------------------------------------|-----------------------------------------------|-----------------------------------------------------------------------|
-| Token Summary & PTU Recommendation   | B6 – Average Tokens per Minute (Overall)       | Sum of Prompt + Completion tokens over time                          |
-|                                      | B7 – PTU Conversion Rate                       | Default is 50,000 TPM per PTU                                        |
-|                                      | B8 – Desired PTUs (for spillover scenario)     | You choose how much base PTU to reserve                              |
-| PTU Trend by Hour                    | Peak usage values (row 20+ of Excel)           | Optional mapping for identifying demand spikes                       |
-| Rate Limit Errors Over Time          | N/A (contextual only)                          | Use to determine if PAYGO is hitting rate limits                     |
-
----
-
-## 🧮 Spreadsheet Breakdown
-
-| Section              | Field / Rows      | Description                                                         |
-|----------------------|-------------------|---------------------------------------------------------------------|
-| Assumptions & Inputs | B4                | PTU cost per 1M tokens (reserved pricing)                           |
-|                      | B5                | Monthly active minutes (usually 43,800)                             |
-|                      | B6                | Avg tokens/min – from Workbook Token Summary                        |
-|                      | B7                | Conversion rate (tokens/min per PTU), default: 50,000               |
-|                      | B8                | Desired base PTUs in fixed + spillover model                        |
-| On-Demand Prices     | Editable table    | Cost per 1M tokens by model (gpt-4, gpt-4o-mini, etc)               |
-| Average Usage Table  | Rows 13–18        | Calculates avg PTUs per model and total                             |
-| Peak Usage Table     | Rows 20–24        | Peak tokens/min per model; helps estimate buffer                    |
-| Scenario Analysis    | Rows 27–31        | Full PTU vs PAYGO vs Fixed + Spillover cost comparison             |
+| Workbook Panel                           | Spreadsheet Field                                      | Notes                                                                 |
+|------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------|
+| **Token Summary & PTU Recommendation**   | B6 – Average Tokens per Minute (Overall)               | Sum of Prompt + Completion tokens over time                          |
+|                                          | B7 – PTU Conversion Rate                               | Default is 50,000 TPM per PTU                                        |
+|                                          | B8 – Desired PTUs (for spillover scenario)             | You choose how much base PTU to reserve                              |
+| **PTU Trend by Hour**                    | Supports peak PTU insights (shown in Excel’s Row 20+)  | Optional mapping; good for identifying spikes                        |
+| **Rate Limit Errors Over Time**          | Context only – no direct cell mapping                  | Helps determine if you’re hitting caps on PAYGO                      |
 
 ---
 
@@ -80,7 +65,53 @@ You can also edit PAYGO token prices for each model in the table below input cel
 
 ---
 
+## 📊 Spreadsheet Breakdown
+
+### Assumptions & Inputs
+
+- **B4 – PTU Price per 1M Tokens (Reserved)**:
+    - This is your negotiated or list price for PTUs.
+    - You can find it in the [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator/) or your EA pricing sheet.
+    - Default value used: **$3 per 1M tokens** — adjust if needed.
+
+- **B5 – Monthly Minutes**:
+    - Default is **43,800** (30 days × 24 hours × 60 minutes).
+    - If modeling for 7 days, use `7 * 24 * 60 = 10,080`.
+
+- **B6 – Average Tokens Per Minute**:
+    - Get this from the Workbook: Token Summary panel shows total tokens used over time.
+    - Use `Total Tokens ÷ Number of Minutes` to get the average TPM.
+
+- **B7 – PTU Conversion Rate**:
+    - Default is **50,000 tokens/minute per PTU**.
+
+- **B8 – Desired PTUs for Fixed + Spillover**:
+    - Choose a baseline PTU number to provision.
+    - Useful if you want to combine fixed PTU with PAYGO for overflow.
+
+### On-Demand Prices (Model-Specific)
+- Edit the prices per 1M tokens for each model based on [Azure OpenAI pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/).
+
+### PTU Calculation – Average Usage (Rows 13–18)
+- Shows average tokens per minute and required PTUs for each model.
+- Total tokens per model = average TPM × 43,800.
+- PTUs = `ceil(total_tokens / 50,000)`.
+
+### PTU Calculation – Peak Usage (Rows 20–24)
+- Shows highest spike in tokens/min for each model.
+- Use this to estimate buffer or detect overload risk.
+
+### Scenario Analysis (Rows 27–31)
+- Compares three strategies:
+    - Full PTU only
+    - PAYGO only
+    - Fixed PTU + Spillover
+- Helps find breakeven point based on your token consumption pattern.
+
+---
+
 ## 📁 File Structure
+
 ```
 azure-openai-ptu-sizer/
 ├── workbook/
@@ -94,8 +125,8 @@ azure-openai-ptu-sizer/
 ---
 
 ## 🛠️ Requirements
-- Azure Subscription with OpenAI enabled  
-- Log Analytics workspace with `AzureDiagnostics` and `AzureMetrics`  
+- Azure Subscription with OpenAI enabled
+- Log Analytics workspace with `AzureDiagnostics` and `AzureMetrics`
 - Microsoft Excel
 
 ---

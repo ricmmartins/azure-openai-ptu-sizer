@@ -2,6 +2,25 @@
   "version": "Notebook/1.0",
   "items": [
     {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "selectedWorkspace",
+            "name": "Log Analytics Workspace",
+            "type": 6,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": {
+              "resourceId": ""
+            }
+          }
+        ],
+        "style": "above"
+      },
+      "name": "Resource Picker"
+    },
+    {
       "type": 1,
       "content": {
         "json": "# Azure OpenAI PTU Usage Tracker\n\nThis workbook helps you analyze your Azure OpenAI token usage patterns and provides recommendations for Provisioned Throughput Units (PTU) sizing.\n\n📊 **Key Metrics**:\n- Real-time token consumption analysis\n- PTU sizing recommendations based on usage patterns\n- Cost comparison between pay-per-token and PTU models\n- Rate limiting detection and performance insights"
@@ -16,7 +35,11 @@
         "size": 0,
         "title": "🔥 API Request Volume",
         "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "querySource": 0,
+        "resourceIds": [
+          "selectedWorkspace"
+        ]
       },
       "name": "RequestVolume"
     },
@@ -28,7 +51,11 @@
         "size": 0,
         "title": "📦 Token Summary & PTU Recommendation",
         "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "querySource": 0,
+        "resourceIds": [
+          "selectedWorkspace"
+        ]
       },
       "name": "TokenSummary"
     },
@@ -40,7 +67,11 @@
         "size": 0,
         "title": "📊 PTU Trend by Hour",
         "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "querySource": 0,
+        "resourceIds": [
+          "selectedWorkspace"
+        ]
       },
       "name": "PTUTrendChart"
     },
@@ -51,9 +82,6 @@
       },
       "name": "PTUDecisionGuide"
     }
-  ],
-  "fallbackResourceIds": [
-    "/subscriptions/313dd062-1c1c-428a-afc4-4e271378679f/resourceGroups/rg-aoai/providers/Microsoft.OperationalInsights/workspaces/loganalytics"
   ],
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
 }
